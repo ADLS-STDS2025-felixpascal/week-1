@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 
-<title>index</title>
+<title>Solution for Week 1: Vector Data Processing</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -19,6 +19,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -43,10 +77,216 @@ ul.task-list li input[type="checkbox"] {
 
 <main class="content" id="quarto-document-content">
 
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Solution for Week 1: Vector Data Processing</h1>
+</div>
 
 
 
-<p>��# Solution for Week1: Vector data processing  In this document, I solve the tasks for week 1 of the course  <em>Spatiotemporal Datascience</em> </p>
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="section" class="level1">
+<h1></h1>
+</section>
+<section id="introduction" class="level1">
+<h1><strong>Introduction</strong></h1>
+<p>In this document, I solve the tasks for week 1 of the course <em>Spatiotemporal Datascience</em>. The goal is to calculate the percentage of forest area per canton using <strong>swissTLM3D</strong> and <strong>swissboundaries3D</strong> datasets.</p>
+<section id="load-libraries" class="level2">
+<h2 class="anchored" data-anchor-id="load-libraries"><strong>Load Libraries</strong></h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load necessary packages</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="load-data" class="level2">
+<h2 class="anchored" data-anchor-id="load-data"><strong>Load Data</strong></h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Define file paths</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>tlm3d_path <span class="ot">&lt;-</span> <span class="st">"data/SWISSTLM3D_2025.gpkg"</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>boundaries_path <span class="ot">&lt;-</span> <span class="st">"data/swissBOUNDARIES3D_1_5_LV95_LN02.gpkg"</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the TLM3D dataset (land cover information)</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>tlm3d <span class="ot">&lt;-</span> <span class="fu">read_sf</span>(tlm3d_path, <span class="st">"tlm_bb_bodenbedeckung"</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the Swiss canton boundaries</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>swiss_boundaries <span class="ot">&lt;-</span> <span class="fu">read_sf</span>(boundaries_path, <span class="st">"tlm_kantonsgebiet"</span>)</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Print summaries</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(tlm3d)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Simple feature collection with 6 features and 13 fields
+Geometry type: POLYGON
+Dimension:     XYZ
+Bounding box:  xmin: 2707318 ymin: 1233667 xmax: 2750662 ymax: 1236564
+z_range:       zmin: 521.282 zmax: 1429.118
+Projected CRS: CH1903+ / LV95
+# A tibble: 6 × 14
+  uuid         datum_aenderung datum_erstellung erstellung_jahr erstellung_monat
+  &lt;chr&gt;        &lt;date&gt;          &lt;date&gt;                     &lt;int&gt;            &lt;int&gt;
+1 {25C22342-3… 2015-04-28      2008-01-23                  2002               NA
+2 {2B94BD0B-A… 2015-05-27      2008-01-23                  2002               NA
+3 {BDC6C99E-B… 2023-11-29      2008-01-23                  2002               NA
+4 {A9F735D5-8… 2020-08-28      2008-01-23                  2002               NA
+5 {4F7F58E5-9… 2020-09-03      2008-01-23                  2002               NA
+6 {4E498F65-4… 2015-07-20      2008-01-23                  2002               NA
+# ℹ 9 more variables: grund_aenderung &lt;chr&gt;, herkunft &lt;chr&gt;,
+#   herkunft_jahr &lt;int&gt;, herkunft_monat &lt;int&gt;, objektart &lt;chr&gt;,
+#   revision_jahr &lt;int&gt;, revision_monat &lt;int&gt;, revision_qualitaet &lt;chr&gt;,
+#   geom &lt;POLYGON [m]&gt;</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(swiss_boundaries)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Simple feature collection with 6 features and 19 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XYZ
+Bounding box:  xmin: 2485410 ymin: 1078560 xmax: 2755680 ymax: 1283504
+z_range:       zmin: 260.694 zmax: 4615.402
+Projected CRS: CH1903+ / LV95
+# A tibble: 6 × 20
+  uuid  datum_aenderung     datum_erstellung    erstellung_jahr erstellung_monat
+  &lt;chr&gt; &lt;dttm&gt;              &lt;dttm&gt;                        &lt;int&gt;            &lt;int&gt;
+1 {C0A… 2022-11-16 00:00:00 2012-10-26 00:00:00            2012               10
+2 {873… 2022-11-16 00:00:00 2012-10-26 00:00:00            2012               10
+3 {54B… 2023-11-14 00:00:00 2012-10-26 00:00:00            2012               10
+4 {E11… 2016-12-09 00:00:00 2012-10-26 00:00:00            2012               10
+5 {F06… 2016-12-09 00:00:00 2012-10-26 00:00:00            2012               10
+6 {FB7… 2022-11-16 00:00:00 2012-10-26 00:00:00            2012               10
+# ℹ 15 more variables: grund_aenderung &lt;chr&gt;, herkunft &lt;chr&gt;,
+#   herkunft_jahr &lt;int&gt;, herkunft_monat &lt;int&gt;, revision_jahr &lt;int&gt;,
+#   revision_monat &lt;int&gt;, revision_qualitaet &lt;chr&gt;, objektart &lt;chr&gt;,
+#   kantonsnummer &lt;int&gt;, see_flaeche &lt;dbl&gt;, kantonsflaeche &lt;dbl&gt;, name &lt;chr&gt;,
+#   icc &lt;chr&gt;, einwohnerzahl &lt;int&gt;, geom &lt;MULTIPOLYGON [m]&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="filter-plot-forest-areas" class="level2">
+<h2 class="anchored" data-anchor-id="filter-plot-forest-areas"><strong>Filter &amp; Plot Forest Areas</strong></h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter only forest areas</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>forests <span class="ot">&lt;-</span> <span class="fu">filter</span>(tlm3d, objektart <span class="sc">==</span> <span class="st">"Wald"</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure CRS is correctly set</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>forests <span class="ot">&lt;-</span> <span class="fu">st_set_crs</span>(forests, <span class="dv">2056</span>)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot to check if forests are loaded correctly</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> forests, <span class="at">fill =</span> <span class="st">"darkgreen"</span>, <span class="at">color =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Forested Areas in Switzerland"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="getting-an-overview-per-canton" class="level2">
+<h2 class="anchored" data-anchor-id="getting-an-overview-per-canton"><strong>Getting an Overview Per Canton</strong></h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Clip forests to canton boundaries</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>forests_per_canton <span class="ot">&lt;-</span> <span class="fu">st_intersection</span>(swiss_boundaries, forests)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot to check the clipped forests</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> swiss_boundaries, <span class="at">fill =</span> <span class="st">"gray"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_sf</span>(<span class="at">data =</span> forests_per_canton, <span class="at">fill =</span> <span class="st">"darkgreen"</span>, <span class="at">color =</span> <span class="cn">NA</span>) <span class="sc">+</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Forested Areas by Canton"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="calculate-forest-percentage-per-canton" class="level2">
+<h2 class="anchored" data-anchor-id="calculate-forest-percentage-per-canton"><strong>Calculate Forest Percentage Per Canton</strong></h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate total forest area per canton (THIS WAS MISSING)</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>canton_forest_area <span class="ot">&lt;-</span> forests_per_canton <span class="sc">%&gt;%</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(name) <span class="sc">%&gt;%</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">ForestArea =</span> <span class="fu">sum</span>(<span class="fu">st_area</span>(geom))) <span class="sc">%&gt;%</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>()</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate total canton area</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>canton_total_area <span class="ot">&lt;-</span> swiss_boundaries <span class="sc">%&gt;%</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(name) <span class="sc">%&gt;%</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">TotalArea =</span> <span class="fu">sum</span>(<span class="fu">st_area</span>(geom))) <span class="sc">%&gt;%</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">%&gt;%</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">st_drop_geometry</span>()  <span class="co"># &lt;- Drop spatial data before merging</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Merge datasets to compute the percentage</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>forest_coverage <span class="ot">&lt;-</span> <span class="fu">left_join</span>(canton_forest_area, canton_total_area, <span class="at">by =</span> <span class="st">"name"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ForestPercentage =</span> (ForestArea <span class="sc">/</span> TotalArea) <span class="sc">*</span> <span class="dv">100</span>)</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Print results</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(forest_coverage)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Simple feature collection with 26 features and 4 fields
+Geometry type: MULTIPOLYGON
+Dimension:     XYZ
+Bounding box:  xmin: 2485429 ymin: 1075268 xmax: 2833012 ymax: 1295934
+z_range:       zmin: 192.853 zmax: 2446.83
+Projected CRS: CH1903+ / LV95
+# A tibble: 26 × 5
+   name          ForestArea                      geom TotalArea ForestPercentage
+ * &lt;chr&gt;              [m^2]        &lt;MULTIPOLYGON [m]&gt;     [m^2]              [1]
+ 1 Aargau            4.90e8 Z (((2633150 1232128 507…    1.40e9             34.9
+ 2 Appenzell Au…     7.66e7 Z (((2734883 1236930 914…    2.43e8             31.6
+ 3 Appenzell In…     4.72e7 Z (((2743415 1237217 139…    1.72e8             27.4
+ 4 Basel-Landsc…     2.03e8 Z (((2598695 1247723 659…    5.18e8             39.1
+ 5 Basel-Stadt       4.65e6 Z (((2611657 1263777 345…    3.70e7             12.6
+ 6 Bern              1.67e9 Z (((2557233 1215403 117…    5.96e9             28.0
+ 7 Fribourg          4.18e8 Z (((2554089 1149765 757…    1.67e9             25.0
+ 8 Genève            3.27e7 Z (((2487082 1110179 425…    2.82e8             11.6
+ 9 Glarus            1.66e8 Z (((2714699 1188445 148…    6.85e8             24.3
+10 Graubünden        1.61e9 Z (((2708261 1162316 169…    7.11e9             22.7
+# ℹ 16 more rows</code></pre>
+</div>
+</div>
+</section>
+<section id="bar-plot-of-forest-coverage-per-canton" class="level2">
+<h2 class="anchored" data-anchor-id="bar-plot-of-forest-coverage-per-canton"><strong>Bar Plot of Forest Coverage Per Canton</strong></h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure ForestPercentage is numeric as m^2 is not recognized</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>forest_coverage <span class="ot">&lt;-</span> forest_coverage <span class="sc">%&gt;%</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ForestPercentage =</span> <span class="fu">as.numeric</span>(ForestPercentage))</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Create bar plot</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(forest_coverage, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(name, <span class="sc">-</span>ForestPercentage), <span class="at">y =</span> ForestPercentage)) <span class="sc">+</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"forestgreen"</span>) <span class="sc">+</span></span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggtitle</span>(<span class="st">"Percentage of Forest Coverage per Canton"</span>) <span class="sc">+</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Canton"</span>) <span class="sc">+</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Forest Coverage (%)"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="index_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Interpretation:</strong><br>
+- <strong>Ticino</strong> has the <strong>highest forest coverage</strong> (~40%), which appears to align with expectations based on visual assessment.<br>
+- <strong>Genève</strong> and <strong>Basel-Stadt</strong> have the <strong>lowest forest coverage</strong> (~12%), which is logical given that both cantons are highly urbanized.</p>
+</section>
+</section>
 
 </main>
 <!-- /main column -->
